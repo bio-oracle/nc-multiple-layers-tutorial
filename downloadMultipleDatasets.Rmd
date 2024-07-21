@@ -1,0 +1,81 @@
+---
+title: "Downloading multiple datasets using biooracler"
+output: html_document
+date: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install and load the development version of biooracler from GitHub with:
+
+```
+{devtools::install_github("bio-oracle/biooracler")
+
+library(biooracler)
+```
+
+You can view the available datasets with:
+
+```
+# you can see more datasets by increasing the n 
+print(list_layers(), n = 10)
+# A tibble: 356 × 3
+   dataset_id                       title                                                     summary                            
+   <chr>                            <chr>                                                     <chr>                              
+ 1 tas_baseline_2000_2020_depthsurf Bio-Oracle AirTemperature [depthSurf] Baseline 2000-2020. "Uses attributes recommended by ht…
+ 2 tas_ssp119_2020_2100_depthsurf   Bio-Oracle AirTemperature [depthSurf] SSP119 2020-2100.   "Uses attributes recommended by ht…
+ 3 tas_ssp126_2020_2100_depthsurf   Bio-Oracle AirTemperature [depthSurf] SSP126 2020-2100.   "Uses attributes recommended by ht…
+ 4 tas_ssp245_2020_2100_depthsurf   Bio-Oracle AirTemperature [depthSurf] SSP245 2020-2100.   "Uses attributes recommended by ht…
+ 5 tas_ssp370_2020_2100_depthsurf   Bio-Oracle AirTemperature [depthSurf] SSP370 2020-2100.   "Uses attributes recommended by ht…
+ 6 tas_ssp460_2020_2100_depthsurf   Bio-Oracle AirTemperature [depthSurf] SSP460 2020-2100.   "Uses attributes recommended by ht…
+ 7 tas_ssp585_2020_2100_depthsurf   Bio-Oracle AirTemperature [depthSurf] SSP585 2020-2100.   "Uses attributes recommended by ht…
+ 8 chl_baseline_2000_2018_depthmax  Bio-Oracle Chlorophyll [depthMax] Baseline 2000-2018.     "Uses attributes recommended by ht…
+ 9 chl_baseline_2000_2018_depthmean Bio-Oracle Chlorophyll [depthMean] Baseline 2000-2018.    "Uses attributes recommended by ht…
+10 chl_baseline_2000_2018_depthmin  Bio-Oracle Chlorophyll [depthMin] Baseline 2000-2018.     "Uses attributes recommended by ht…
+# ℹ 346 more rows
+# ℹ Use `print(n = ...)` to see more rows
+
+```
+
+Select the desired layers by defining the dataset_id, variables and constraints (time, latitude and longitude)
+
+```
+# example of selecting five variables from three datasets
+datasets <- list(
+
+  list(dataset_id = "tas_baseline_2000_2020_depthsurf",
+       variables = c("tas_ltmin","tas_ltmax"),
+       constraints = list(time = c('2000-01-01T00:00:00Z', '2010-01-01T00:00:00Z'), latitude = c(10, 20), longitude = c(120, 130))),
+  
+  list(dataset_id = "no3_ssp585_2020_2100_depthmean",
+       variables = "no3_mean",
+       constraints = list(time = c('2020-01-01T00:00:00Z', '2090-01-01T00:00:00Z'), latitude = c(-20, 30), longitude = c(110, 140))),
+  
+  list(dataset_id = "chl_baseline_2000_2018_depthmax",
+       variables = c("chl_mean", "chl_ltmax"),
+       constraints = list(time = c('2000-01-01T00:00:00Z', '2010-01-01T00:00:00Z'), latitude = c(30, 60), longitude = c(-20, 40))) )
+
+```
+Download the layers
+
+```
+for (dataset in datasets) {
+  
+  dataset_id <- dataset$dataset_id
+  variables <- dataset$variables
+  constraints <- dataset$constraints
+  
+  download_layers(dataset_id, variables = variables, constraints = constraints, directory= dir)
+}
+```
+You can load and plot the layers with:
+
+```
+library(terra)
+# Select the layers and variables by changing the [numbers]
+layer <- rast(paste0(dir, list.files(dir)[1]))
+plot(layer[[1]])
+
+```
